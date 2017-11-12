@@ -52,32 +52,52 @@ subprojects {
   uploadArchives {
     repositories {
       signing {
-          if (isVerificationRequired(project)) {
-              sign configurations.archives
+        if (isVerificationRequired(project)) {
+          sign configurations.archives
 
-              // To test locally, replace mavenUrl in ~/.gradle/gradle.properties to file://localhost/tmp/myRepo/
-              mavenDeployer {
-                  beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-                  repository(url: "${mavenUrl}") {
-                      authentication(userName: "${mavenUsername}", password: "${mavenPassword}")
+          // To test locally, replace mavenUrl in ~/.gradle/gradle.properties to file://localhost/tmp/myRepo/
+          mavenDeployer {
+            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+            repository(url: "${mavenUrl}") {
+                authentication(userName: "${mavenUsername}", password: "${mavenPassword}")
+            }
+            repository(url: "${repositoryUrl}") {
+              authentication(userName: "${mavenUsername}", password: "${mavenPassword}")
+            }
+
+            snapshotRepository(url: "${snapshotRepositoryUrl}") {
+              authentication(userName: "${mavenUsername}", password: "${mavenPassword}")
+            }
+            afterEvaluate {
+              pom.artifactId = "${archivesBaseName}"
+              pom.project {
+                name 'Apache Kafka 0.8 Redux'
+                packaging 'jar'
+                description 'A Kafka 0.8 distribution compiled with Scala 2.12'
+                url 'https://github.com/schrepfler/kafka'
+                scm {
+                  connection 'scm:git:git@github.com:schrepfler/kafka.git'
+                  developerConnection 'scm:git:git@github.com:schrepfler/kafka.git'
+                  url 'https://github.com/schrepfler/kafka'
+                }
+                licenses {
+                    license {
+                        name 'The Apache Software License, Version 2.0'
+                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                        distribution 'repo'
+                    }
+                }
+                developers {
+                  developer {
+                    id 'schrepfler'
+                    name 'Srdan Srepfler'
+                    email 'schrepfler@gmail.com'
                   }
-                  afterEvaluate {
-                      pom.artifactId = "${archivesBaseName}"
-                      pom.project {
-                          name 'Apache Kafka'
-                          packaging 'jar'
-                          url 'http://kafka.apache.org'
-                          licenses {
-                              license {
-                                  name 'The Apache Software License, Version 2.0'
-                                  url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                                  distribution 'repo'
-                              }
-                          }
-                      }
-                  }
+                }
               }
+            }
           }
+        }
       }
     }
   }
@@ -140,7 +160,7 @@ subprojects {
   }
 }
 
-for ( sv in ['2_9_1', '2_9_2', '2_10_4', '2_11_5', '2_12_3'] ) {
+for ( sv in ['2_9_1', '2_9_2', '2_10_4', '2_11_5', '2_12_4'] ) {
   String svInDot = sv.replaceAll( "_", ".")
 
   tasks.create(name: "jar_core_${sv}", type: GradleBuild) {
@@ -180,20 +200,20 @@ for ( sv in ['2_9_1', '2_9_2', '2_10_4', '2_11_5', '2_12_3'] ) {
   }
 }
 
-tasks.create(name: "jarAll", dependsOn: ['jar_core_2_9_1', 'jar_core_2_9_2', 'jar_core_2_10_4', 'jar_core_2_11_5', 'jar_core_2_12_3', 'clients:jar', 'examples:jar', 'contrib:hadoop-consumer:jar', 'contrib:hadoop-producer:jar']) {
+tasks.create(name: "jarAll", dependsOn: ['jar_core_2_9_1', 'jar_core_2_9_2', 'jar_core_2_10_4', 'jar_core_2_11_5', 'jar_core_2_12_4', 'clients:jar', 'examples:jar', 'contrib:hadoop-consumer:jar', 'contrib:hadoop-producer:jar']) {
 }
 
-tasks.create(name: "srcJarAll", dependsOn: ['srcJar_2_9_1', 'srcJar_2_9_2', 'srcJar_2_10_4', 'srcJar_2_11_5', 'srcJar_2_12_3', 'clients:srcJar', 'examples:srcJar', 'contrib:hadoop-consumer:srcJar', 'contrib:hadoop-producer:srcJar']) { }
+tasks.create(name: "srcJarAll", dependsOn: ['srcJar_2_9_1', 'srcJar_2_9_2', 'srcJar_2_10_4', 'srcJar_2_11_5', 'srcJar_2_12_4', 'clients:srcJar', 'examples:srcJar', 'contrib:hadoop-consumer:srcJar', 'contrib:hadoop-producer:srcJar']) { }
 
-tasks.create(name: "docsJarAll", dependsOn: ['docsJar_2_9_1', 'docsJar_2_9_2', 'docsJar_2_10_4', 'docsJar_2_11_5', 'docsJar_2_12_3', 'clients:docsJar', 'examples:docsJar', 'contrib:hadoop-consumer:docsJar', 'contrib:hadoop-producer:docsJar']) { }
+tasks.create(name: "docsJarAll", dependsOn: ['docsJar_2_9_1', 'docsJar_2_9_2', 'docsJar_2_10_4', 'docsJar_2_11_5', 'docsJar_2_12_4', 'clients:docsJar', 'examples:docsJar', 'contrib:hadoop-consumer:docsJar', 'contrib:hadoop-producer:docsJar']) { }
 
-tasks.create(name: "testAll", dependsOn: ['test_core_2_9_1', 'test_core_2_9_2', 'test_core_2_10_4', 'test_core_2_11_5', 'test_core_2_12_3', 'clients:test']) {
+tasks.create(name: "testAll", dependsOn: ['test_core_2_9_1', 'test_core_2_9_2', 'test_core_2_10_4', 'test_core_2_11_5', 'test_core_2_12_4', 'clients:test']) {
 }
 
-tasks.create(name: "releaseTarGzAll", dependsOn: ['releaseTarGz_2_9_1', 'releaseTarGz_2_9_2', 'releaseTarGz_2_10_4', 'releaseTarGz_2_11_5', 'releaseTarGz_2_12_3']) {
+tasks.create(name: "releaseTarGzAll", dependsOn: ['releaseTarGz_2_9_1', 'releaseTarGz_2_9_2', 'releaseTarGz_2_10_4', 'releaseTarGz_2_11_5', 'releaseTarGz_2_12_4']) {
 }
 
-tasks.create(name: "uploadArchivesAll", dependsOn: ['uploadCoreArchives_2_9_1', 'uploadCoreArchives_2_9_2', 'uploadCoreArchives_2_10_4', 'uploadCoreArchives_2_11_5', 'uploadCoreArchives_2_12_3', 'clients:uploadArchives', 'examples:uploadArchives', 'contrib:hadoop-consumer:uploadArchives', 'contrib:hadoop-producer:uploadArchives']) {
+tasks.create(name: "uploadArchivesAll", dependsOn: ['uploadCoreArchives_2_9_1', 'uploadCoreArchives_2_9_2', 'uploadCoreArchives_2_10_4', 'uploadCoreArchives_2_11_5', 'uploadCoreArchives_2_12_4', 'clients:uploadArchives', 'examples:uploadArchives', 'contrib:hadoop-consumer:uploadArchives', 'contrib:hadoop-producer:uploadArchives']) {
 }
 
 project(':core') {
